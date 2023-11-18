@@ -14,6 +14,24 @@ bool CallNode::addDirectSuccessor(Node *callSuccessor) {
     return true;
 }
 
+// there is something wrong with the graph creation;
+// this is just a quick fix, further refactoring may be needed
+bool CallNode::isExtern() const {
+    if (directSuccessors_.empty()) {
+        return true;
+    }
+
+    if (successorsNumber() > 1) {
+        return true;
+    }
+
+    if ((*successors().begin())->getType() != NodeType::ENTRY) {
+        return true;
+    }
+
+    return false;
+}
+
 std::set<Node *> CallNode::directSuccessors() const {
     if (isExtern()) {
         return successors();
@@ -26,7 +44,7 @@ EntryNode *CallNode::getEntryNode() const {
     // every node that is not an exit node has a direct successor;
     // if this is empty, this means that the direct successors
     // are the actual successors
-    if (directSuccessors_.empty()) {
+    if (isExtern()) {
         return nullptr;
     }
 

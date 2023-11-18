@@ -14,7 +14,7 @@ class CallNode : public Node {
 
     // FIXME: this is ugly; refactor the entire graph creation
 
-    inline bool isExtern() const { return directSuccessors_.empty(); }
+    bool isExtern() const;
 
     std::set<Node *> directSuccessors() const override;
 
