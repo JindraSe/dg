@@ -81,6 +81,13 @@ void ThreadRegionsBuilder::insertNodeIntoRegion(ThreadRegion *region,
     region->insertNode(node);
     nodeToRegionMap_[node] = region;
 
+    auto addForkedSuccessors = [&](const ForkNode *forkNode) {
+        for (auto *forkedProcedureEntry : forkNode->forkSuccessors()) {
+            auto *forkedRegion = findOrCreateRegion(forkedProcedureEntry);
+            region->addForkedSuccessor(forkedRegion);
+        }
+    };
+
     if (node->getType() == NodeType::CALL) {
         const CallNode *callNode = static_cast<const CallNode *>(node);
         EntryNode *procedureEntry = callNode->getEntryNode();
@@ -101,20 +108,12 @@ void ThreadRegionsBuilder::insertNodeIntoRegion(ThreadRegion *region,
 
         for (const auto *forkNode :
              concurrencyProcedureAnalysis_->mayCallForks(procedureEntry)) {
-            for (auto *forkedProcedureEntry : forkNode->forkSuccessors()) {
-                auto *forkedRegion = findOrCreateRegion(forkedProcedureEntry);
-                region->addForkedSuccessor(forkedRegion);
-            }
+            addForkedSuccessors(forkNode);
         }
     }
 
-    if (node->getType() == NodeType::FORK) {
-        const ForkNode *forkNode = static_cast<const ForkNode *>(node);
-
-        for (auto *forkedProcedureEntry : forkNode->forkSuccessors()) {
-            auto *forkedRegion = findOrCreateRegion(forkedProcedureEntry);
-            region->addForkedSuccessor(forkedRegion);
-        }
+    else if (node->getType() == NodeType::FORK) {
+        addForkedSuccessors(static_cast<const ForkNode *>(node));
     }
 }
 
@@ -236,8 +235,6 @@ bool ThreadRegionsBuilder::regionIsComplete(
         return true;
     }
 
-    // FIXME: an enitre set needs to be build here, it is wasteful,
-    // I should add a method "directPredecessorSize"
     if ((*successors.begin())->directPredecessors().size() > 1) {
         return true;
     }

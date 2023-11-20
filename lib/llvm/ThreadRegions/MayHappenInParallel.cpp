@@ -13,7 +13,7 @@ void MayHappenInParallel::run() {
     MHPRelationGraph res = runAnalysis();
 
     for (auto pair : res) {
-        // the set must exist; I will have to fill it in another method
+        // the set must exist; it is created in another method
         mhpInfo_[pair.first].insert(pair.second);
         mhpInfo_[pair.second].insert(pair.first);
     }
@@ -73,6 +73,8 @@ MayHappenInParallel::findInitialMHP() const {
             }
         }
 
+        // if `current` ends with an interesting call, it also has
+        // forked successors
         for (const auto *forkSucc : current->forkedSuccessors()) {
             for (const auto *succ : current->directSuccessors()) {
                 res.insert(createMHPPair(succ, forkSucc));

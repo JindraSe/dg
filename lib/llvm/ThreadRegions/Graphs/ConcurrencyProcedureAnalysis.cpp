@@ -42,20 +42,14 @@ void ConcurrencyProcedureAnalysis::findDirectlyCalledProcedures() {
         for (const auto *node : pair.second->usedNodes_) {
             if (node->getType() == NodeType::CALL) {
                 const auto *callNode = static_cast<const CallNode *>(node);
+                const auto *entryNode = callNode->getEntryNode();
 
-                // if the called procedure is external; the `successors()` would
-                // return the direct successor, not the entry point of the new
-                // procedure
-                if (callNode->isExtern()) {
+                // the function is extern
+                if (entryNode == nullptr) {
                     continue;
                 }
 
-                // the `successors` method should return exactly one node; if a
-                // procedure is called via a function pointer, then a call node
-                // is created for every possible procedure
-                pair.second->directlyCalledProcedures_.insert(
-                        static_cast<const EntryNode *>(
-                                *callNode->successors().begin()));
+                pair.second->directlyCalledProcedures_.insert(entryNode);
             }
         }
     }

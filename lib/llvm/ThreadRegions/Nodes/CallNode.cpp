@@ -41,12 +41,12 @@ std::set<Node *> CallNode::directSuccessors() const {
 }
 
 EntryNode *CallNode::getEntryNode() const {
-    // every node that is not an exit node has a direct successor;
-    // if this is empty, this means that the direct successors
-    // are the actual successors
+    // extern functions are not modelled in the threaded CFG
     if (isExtern()) {
         return nullptr;
     }
 
+    // if the function is not extern, then it has one successor,
+    // and it is an entry node
     return static_cast<EntryNode *>(*successors().begin());
 }

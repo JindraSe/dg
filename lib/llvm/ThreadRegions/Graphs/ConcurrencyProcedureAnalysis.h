@@ -43,16 +43,11 @@ class ConcurrencyProcedureAnalysis {
     const std::set<const EntryNode *> &
     mayCallProcedures(const EntryNode *procedure) const;
 
-    // maybe return a reference ... depends on implementation
     const std::set<const ForkNode *> &
     mayCallForks(const EntryNode *procedure) const;
 
   private:
     void findUsedNodes();
-
-    // we use a dominator algoritm to find which nodes are always called
-    // in a function
-    void fillAlwaysUsedNodes();
 
     // these functions figure out which functions may be called by other
     // functions, first directly, then recursively, until a fixed point

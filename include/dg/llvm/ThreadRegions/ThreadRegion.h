@@ -17,8 +17,6 @@ class ThreadRegion {
     int id_;
     std::vector<const Node *> nodes_;
 
-    // would vectors be better here?
-
     std::vector<const ThreadRegion *> directSuccessors_;
     std::vector<const ThreadRegion *> calledSuccessors_;
     std::vector<const ThreadRegion *> forkedSuccessors_;
@@ -56,7 +54,7 @@ class ThreadRegion {
     // without certainly being joined
     const std::vector<const ThreadRegion *> &forkedSuccessors() const;
 
-    // ROOM FOR IMPROVEMENT: there can be more regions if I consider all CALL
+    // ROOM FOR IMPROVEMENT: there can be fewer regions if I consider all CALL
     // successors of a CALL_PTR node to be part of the same region; in that
     // case, the number of interesting call successors can be greater than one
 
