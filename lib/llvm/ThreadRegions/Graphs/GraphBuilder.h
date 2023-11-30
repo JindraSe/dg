@@ -68,7 +68,11 @@ class GraphBuilder {
         NodeSequence() : first(nullptr), second(nullptr), callNode(nullptr) {}
 
         NodeSequence(Node *first, Node *second, CallNode *callNode = nullptr)
-                : first(first), second(second), callNode(callNode) {}
+                : first(first), second(second), callNode(callNode) {
+            if (second->getType() == NodeType::CALL) {
+                callNode = static_cast<CallNode *>(second);
+            }
+        }
 
         void addSuccessor(Node *successor) const;
     };
