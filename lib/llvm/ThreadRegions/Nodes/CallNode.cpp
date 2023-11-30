@@ -33,10 +33,6 @@ bool CallNode::isExtern() const {
 }
 
 std::set<Node *> CallNode::directSuccessors() const {
-    if (isExtern()) {
-        return successors();
-    }
-
     return directSuccessors_;
 }
 

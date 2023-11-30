@@ -1,6 +1,7 @@
 #ifndef GRAPHBUILDER_H
 #define GRAPHBUILDER_H
 
+#include "llvm/ThreadRegions/Nodes/CallNode.h"
 #include <ostream>
 #include <set>
 #include <unordered_map>
@@ -52,19 +53,24 @@ class GraphBuilder {
   public:
     // using NodeSequence = std::pair<Node *, Node *>;
 
-    class NodeSequence {
-        Node *callNode_;
+    // this class is responsible for adding relations between nodes
+    //
+    // for example, when we have an arithmetic instructions, we want
+    // to add successors and predecessors to the same node; when we
+    // call a function, we want to add predecessors to the function
+    // call and successors to the exit of the function
+    struct NodeSequence {
+        Node *first;        // for adding predecessors
+        Node *second;       // for adding successors
+        CallNode *callNode; // for adding direct, in-procedure successors to
+                            // call nodes
 
-      public:
-        Node *first;
-        Node *second;
+        NodeSequence() : first(nullptr), second(nullptr), callNode(nullptr) {}
 
-        NodeSequence() : callNode_(nullptr), first(nullptr), second(nullptr) {}
+        NodeSequence(Node *first, Node *second, CallNode *callNode = nullptr)
+                : first(first), second(second), callNode(callNode) {}
 
-        NodeSequence(Node *first, Node *second, Node *callNode = nullptr)
-                : callNode_(callNode), first(first), second(second) {}
-
-        void addSuccessor(Node *successor);
+        void addSuccessor(Node *successor) const;
     };
 
     GraphBuilder(dg::DGLLVMPointerAnalysis *pointsToAnalysis);
