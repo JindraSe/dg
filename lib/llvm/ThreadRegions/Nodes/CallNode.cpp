@@ -14,13 +14,7 @@ bool CallNode::addDirectSuccessor(Node *callSuccessor) {
     return true;
 }
 
-// there is something wrong with the graph creation;
-// this is just a quick fix, further refactoring may be needed
 bool CallNode::isExtern() const {
-    if (directSuccessors_.empty()) {
-        return true;
-    }
-
     if (successorsNumber() > 1) {
         return true;
     }
