@@ -2,6 +2,7 @@
 #define GRAPHBUILDER_H
 
 #include "llvm/ThreadRegions/Nodes/CallNode.h"
+#include "llvm/ThreadRegions/Nodes/Nodes.h"
 #include <ostream>
 #include <set>
 #include <unordered_map>
@@ -67,12 +68,11 @@ class GraphBuilder {
 
         NodeSequence() : first(nullptr), second(nullptr), callNode(nullptr) {}
 
-        NodeSequence(Node *first, Node *second, CallNode *callNode = nullptr)
-                : first(first), second(second), callNode(callNode) {
-            if (second->getType() == NodeType::CALL) {
-                callNode = static_cast<CallNode *>(second);
-            }
-        }
+        NodeSequence(Node *first, Node *second)
+                : first(first), second(second), callNode(castNode<NodeType::CALL>(second)) {}
+
+        NodeSequence(Node *first, Node *second, CallNode *callNode)
+                : first(first), second(second), callNode(callNode) {}
 
         void addSuccessor(Node *successor) const;
     };
