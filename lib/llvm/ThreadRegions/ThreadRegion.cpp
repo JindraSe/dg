@@ -92,7 +92,7 @@ void ThreadRegion::printEdges(std::ostream &ostream) {
                 << " [ltail = " << this->dotName()
                 << " lhead = " << successor->dotName()
                 << ", color = darkorchid, fontcolor = darkorchid, style = bold"
-                << ", label=\"forks\"]";
+                << ", label=\"forks\"]\n";
     }
 
     for (const auto &successor : calledSuccessors_) {
@@ -110,7 +110,7 @@ void ThreadRegion::printEdges(std::ostream &ostream) {
                 << " [ltail = " << this->dotName()
                 << " lhead = " << interestingCallSuccessor_->dotName()
                 << ", color = chocolate4, fontcolor = chocolate4, style = bold"
-                << ", label=\"calls (interesting)\"]";
+                << ", label=\"calls (interesting)\"]\n";
     }
 }
 

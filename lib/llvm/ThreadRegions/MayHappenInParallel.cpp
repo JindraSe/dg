@@ -48,7 +48,7 @@ void MayHappenInParallel::printEdges(std::ostream &ostream) const {
                     << " lhead = " << successor->dotName()
                     << ", color = chartreuse, fontcolor = chartreuse, style = "
                        "bold"
-                    << ", label=\"MHP\"]";
+                    << ", label=\"MHP\"]\n";
         }
     }
 }
