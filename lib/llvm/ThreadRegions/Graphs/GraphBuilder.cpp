@@ -38,10 +38,9 @@ GraphBuilder::~GraphBuilder() {
     }
 }
 
-void GraphBuilder::NodeSequence::addSuccessor(Node *successor) {
-    if (callNode_ != nullptr) {
-        CallNode *call = static_cast<CallNode *>(callNode_);
-        call->addDirectSuccessor(successor);
+void GraphBuilder::NodeSequence::addSuccessor(Node *successor) const {
+    if (callNode != nullptr) {
+        callNode->addDirectSuccessor(successor);
     }
 
     second->addSuccessor(successor);
@@ -167,11 +166,13 @@ GraphBuilder::buildBlock(const llvm::BasicBlock *basicBlock) {
 
     Node *firstNode = builtInstructions.front().first;
     Node *lastNode = builtInstructions.back().second;
+    CallNode *callNode = builtInstructions.back().callNode;
 
-    auto *blockGraph = new BlockGraph(basicBlock, firstNode, lastNode);
+    auto *blockGraph =
+            new BlockGraph(basicBlock, firstNode, lastNode, callNode);
     this->llvmToBlockMap_.emplace(basicBlock, blockGraph);
 
-    return {firstNode, lastNode};
+    return { firstNode, lastNode, callNode };
 }
 
 GraphBuilder::NodeSequence
@@ -205,16 +206,13 @@ GraphBuilder::buildFunction(const llvm::Function *function) {
         if (isReachable(&block)) {
             auto *blockGraph = findBlock(&block);
             if (predecessorsNumber(&block) == 0) {
-                functionGraph->entryNode()->addSuccessor(
-                        blockGraph->firstNode());
+                blockGraph->addPredecessor(functionGraph->entryNode());
             }
             if (successorsNumber(&block) == 0) {
-                blockGraph->lastNode()->addSuccessor(functionGraph->exitNode());
+                blockGraph->addSuccessor(functionGraph->exitNode());
             }
             for (auto it = succ_begin(&block); it != succ_end(&block); ++it) {
-                auto *successorGraph = findBlock(*it);
-                blockGraph->lastNode()->addSuccessor(
-                        successorGraph->firstNode());
+                blockGraph->addSuccessor(findBlock(*it));
             }
         }
     }
@@ -277,7 +275,6 @@ std::set<LockNode *> GraphBuilder::getLocks() const {
     }
     return locks;
 }
-
 
 std::set<const EntryNode *> GraphBuilder::getProcedureEntries() const {
     std::set<const EntryNode *> res;
@@ -365,7 +362,8 @@ void GraphBuilder::printNodes(std::ostream &ostream) const {
     }
 }
 
-void GraphBuilder::printEdges(std::ostream &ostream, bool printOnlyDirect) const {
+void GraphBuilder::printEdges(std::ostream &ostream,
+                              bool printOnlyDirect) const {
     for (const auto &iterator : llvmToNodeMap_) {
         iterator.second->printOutcomingEdges(ostream, printOnlyDirect);
     }
@@ -435,11 +433,12 @@ GraphBuilder::insertUndefinedFunction(const Function *function,
     }
     if (funcName == "pthread_mutex_lock") {
         return insertPthreadMutexLock(callInstruction);
-    } else if (funcName == "pthread_mutex_unlock") {
-        return insertPthreadMutexUnlock(callInstruction);
-    } else {
-        return buildGeneralCallInstruction(callInstruction);
     }
+    if (funcName == "pthread_mutex_unlock") {
+        return insertPthreadMutexUnlock(callInstruction);
+    }
+
+    return buildGeneralCallInstruction(callInstruction);
 }
 
 GraphBuilder::NodeSequence
@@ -521,7 +520,7 @@ GraphBuilder::insertFunction(const Function *function,
     if (function->empty()) {
         return insertUndefinedFunction(function, callInstruction);
     }
-    Node *callNode;
+    CallNode *callNode;
     if (callInstruction->getCalledFunction()) {
         callNode = createNode<NodeType::CALL>(callInstruction);
     } else {
@@ -545,7 +544,7 @@ GraphBuilder::insertFunctionPointerCall(const CallInst *callInstruction) {
     auto *callFuncPtrNode =
             addNode(createNode<NodeType::CALL_FUNCPTR>(callInstruction));
     Node *returnNode;
-    Node *callNode = nullptr;
+    CallNode *callNode = nullptr;
 
     if (functions.size() > 1) {
         returnNode = addNode(createNode<NodeType::CALL_RETURN>());
@@ -558,7 +557,7 @@ GraphBuilder::insertFunctionPointerCall(const CallInst *callInstruction) {
         auto nodeSeq = insertFunction(functions.front(), callInstruction);
         callFuncPtrNode->addSuccessor(nodeSeq.first);
         returnNode = nodeSeq.second;
-        callNode = nodeSeq.first;
+        callNode = nodeSeq.callNode;
     } else {
         auto nodeSeq = buildGeneralCallInstruction(callInstruction);
         callFuncPtrNode->addSuccessor(nodeSeq.first);

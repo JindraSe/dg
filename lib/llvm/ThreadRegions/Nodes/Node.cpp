@@ -93,7 +93,17 @@ std::set<Node *> Node::directPredecessors() const {
 }
 
 std::set<Node *> Node::directSuccessors() const {
-    return successors();
+    std::set<Node *> res;
+
+    for (auto *successor : successors()) {
+        if (successor->getType() == NodeType::ENTRY) {
+            continue;
+        }
+
+        res.insert(successor);
+    }
+
+    return res;
 }
 
 bool Node::isArtificial() const { return llvmInstruction_ == nullptr; }
