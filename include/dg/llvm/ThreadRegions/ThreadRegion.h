@@ -18,7 +18,7 @@ class ThreadRegion {
     std::vector<const Node *> nodes_;
 
     std::vector<const ThreadRegion *> directSuccessors_;
-    std::vector<const ThreadRegion *> calledSuccessors_;
+    std::set<const ThreadRegion *> calledSuccessors_;
     std::vector<const ThreadRegion *> forkedSuccessors_;
     const ThreadRegion *interestingCallSuccessor_ = nullptr;
 
@@ -46,7 +46,7 @@ class ThreadRegion {
     // the called successors are the uninteresting calls from
     // inside of the region; only the MHP information from this
     // node propagates to them directly
-    const std::vector<const ThreadRegion *> &calledSuccessors() const;
+    const std::set<const ThreadRegion *> &calledSuccessors() const;
 
     // the called fork is a special kind of successor, as it
     // is not a thread region, but a node instead; it signifies

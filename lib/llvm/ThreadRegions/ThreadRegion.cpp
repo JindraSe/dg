@@ -15,7 +15,9 @@ void ThreadRegion::addDirectSuccessor(const ThreadRegion *region) {
 }
 
 void ThreadRegion::addCallSuccessor(const ThreadRegion *region) {
-    calledSuccessors_.push_back(region);
+    if (calledSuccessors_.find(region) == calledSuccessors_.end()) {
+        calledSuccessors_.insert(region);
+    }
 }
 
 void ThreadRegion::addForkedSuccessor(const ThreadRegion *region) {
@@ -31,7 +33,7 @@ ThreadRegion::directSuccessors() const {
     return directSuccessors_;
 }
 
-const std::vector<const ThreadRegion *> &
+const std::set<const ThreadRegion *> &
 ThreadRegion::calledSuccessors() const {
     return calledSuccessors_;
 }
