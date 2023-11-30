@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
     std::set<ThreadRegion *> regions = controlFlowGraph.allRegions();
 
     size_t regionCount = regions.size();
-    size_t maximumRelationCount = regionCount * regionCount;
+    size_t maximumRelationCount = regionCount * (regionCount + 1) / 2;
     size_t actualRelationCount = mhp.countRelations();
     double percentageRemoved = 100.0 - 100.0 * (double) actualRelationCount /
                                                (double) maximumRelationCount;
@@ -123,13 +123,23 @@ int main(int argc, char *argv[]) {
     }
 
     size_t maximumInstructionRelationCount =
-            instructionCount * instructionCount;
+            instructionCount * (instructionCount + 1) / 2;
 
     for (auto *region : regions) {
         for (const auto *mhpRegion : mhp.parallelRegions(region)) {
-            actualInstructionRelationCount +=
-                    regionInstructionCount[mhpRegion] *
-                    regionInstructionCount[region];
+            if (region < mhpRegion) {
+                continue;
+            }
+
+            if (region == mhpRegion) {
+                actualInstructionRelationCount +=
+                        regionInstructionCount[region] *
+                        (regionInstructionCount[region] + 1) / 2;
+            } else {
+                actualInstructionRelationCount +=
+                        regionInstructionCount[mhpRegion] *
+                        regionInstructionCount[region];
+            }
         }
     }
 
@@ -157,7 +167,7 @@ int main(int argc, char *argv[]) {
                << percentageRemovedInstructions << '\n';
     } else {
         stream << regionCount << ',' << maximumRelationCount << ','
-               << actualRelationCount << ',' << percentageRemoved
+               << actualRelationCount << ',' << percentageRemoved << ','
                << instructionCount << ',' << maximumInstructionRelationCount
                << ',' << actualInstructionRelationCount << ','
                << percentageRemovedInstructions << '\n';
